@@ -23,7 +23,7 @@ export default function ZoneCard({
     <div
       className={`flex flex-col border rounded-2xl p-5 gap-6 bg-surface-10 font-sans 
       ${status === "on" ? "border-green-20" : status === "partial" ? "border-yellow-20" : "border-border-default"}
-      group hover:border-border-hover hover:-translate-y-2 transition-transform duration-200 cursor-pointer`}
+      group hover:cursor-pointer hover:-translate-y-2 transition-transform duration-200`}
     >
       <div>
         <ActivateBadge status={status} />

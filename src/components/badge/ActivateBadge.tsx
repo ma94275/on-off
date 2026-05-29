@@ -1,9 +1,23 @@
 import { StatusProps } from "@/entities/status/type";
 
-export default function ActivateBadge({ status }: StatusProps) {
+interface ActivateBadgeProps extends StatusProps {
+  onLabel?: string;
+  offLabel?: string;
+  partialLabel?: string;
+}
+
+export default function ActivateBadge({
+  status,
+  onLabel = "활성",
+  offLabel = "비활성",
+  partialLabel = "부분 활성",
+}: ActivateBadgeProps) {
+  const label =
+    status === "on" ? onLabel : status === "partial" ? partialLabel : offLabel;
+
   return (
     <span
-      className={`items-cneter border px-2.5 py-0.5 rounded-full text-[11px] font-mono tracking-[-0.1em]
+      className={`items-center border px-2.5 py-0.5 rounded-full text-[11px] font-mono tracking-[-0.1em]
         ${
           status === "on"
             ? "bg-green-30 border-green-20 text-green-10"
@@ -12,7 +26,7 @@ export default function ActivateBadge({ status }: StatusProps) {
               : "bg-surface-20 border-border-default text-text-30"
         }`}
     >
-      {status === "on" ? "활성" : status === "partial" ? "부분 활성" : "비활성"}
+      {label}
     </span>
   );
 }

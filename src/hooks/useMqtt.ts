@@ -86,5 +86,9 @@ export function useMqtt({
     clientRef.current?.subscribe(topic);
   }, []);
 
-  return { status, publish, subscribe };
+  return { status, publish, subscribe } as {
+    status: MqttStatus;
+    publish: (topic: string, payload: string) => void;
+    subscribe: (topic: string | string[]) => void;
+  };
 }

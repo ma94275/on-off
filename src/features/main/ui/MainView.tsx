@@ -95,9 +95,8 @@ export default function MainView() {
           <span className="font-mono text-xs text-text-20">구역 목록</span>
           <div className="gap-4 grid grid-cols-3">
             {ZONES.map((zone) => (
-              <Link href={`/main/${zone.id}`}>
+              <Link key={zone.id} href={`/main/${zone.id}`}>
                 <ZoneCard
-                  key={zone.id}
                   title={zone.title}
                   description={zone.description}
                   deviceStatus={zone.deviceStatus.map((ds) => ds.status)}

@@ -17,7 +17,7 @@ export default function RowControl({
             : "border-border-default bg-surface-10"
         }`}
     >
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-1">
         <span className="font-sans text-sm font-medium">{title}</span>
         <span className="font-sans text-xs text-text-30">{description}</span>
       </div>

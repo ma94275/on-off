@@ -1,16 +1,19 @@
 "use client";
-import { useState } from "react";
-import { ZONES } from "@/entities/zone/mock";
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { useMqttContext } from "@/context/MqttContext";
 import SortRow from "./SortRow";
 import SortCol from "./SortCol";
-import LiveDot from "@/components/dot/LiveDot";
+import MqttStatusBadge from "@/components/MqttStatusBadge";
 import BackButton from "@/components/button/BackButton";
 import CardButton from "@/components/button/CardButton";
 import Link from "next/link";
 
 export default function Page() {
   const [selected, setSelected] = useState("row");
-  const zone = ZONES.find((z) => z.id === 1);
+  const { id } = useParams();
+  const { zones } = useMqttContext();
+  const zone = zones.find((z) => z.id === Number(id));
 
   if (!zone) {
     return <div>데이터가 없습니다.</div>;
@@ -20,15 +23,12 @@ export default function Page() {
     <div className="flex flex-col h-screen">
       <div className="fixed top-0 flex items-center justify-between w-full px-10 py-5 border-b border-border-default bg-bg-default">
         <span className="font-bold font-snas">on & off</span>
-        <div className="flex items-center gap-2 font-mono text-xs text-text-20">
-          <LiveDot />
-          활성 데이터
-        </div>
+        <MqttStatusBadge />
       </div>
 
       <div className="flex flex-col pt-25 p-10 gap-8">
         <div className="flex items-center gap-4">
-          <Link href={`/main`}>
+          <Link href="/main">
             <BackButton />
           </Link>
           <div className="w-10 h-10 border border-border-default rounded-lg bg-surface-10"></div>
@@ -54,7 +54,11 @@ export default function Page() {
         </div>
 
         <div className="transition-all duration-300 ease-in-out">
-          {selected === "row" ? <SortRow /> : <SortCol />}
+          {selected === "row" ? (
+            <SortRow zoneId={zone.id} />
+          ) : (
+            <SortCol zoneId={zone.id} />
+          )}
         </div>
       </div>
     </div>

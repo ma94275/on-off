@@ -1,12 +1,15 @@
 "use client";
-import { useState } from "react";
-import { ZONES } from "@/entities/zone/mock";
+import { useMqttContext } from "@/context/MqttContext";
 import AllControlCard from "@/components/card/AllControlCard";
 import RowControl from "@/components/card/RowControl";
 
-export default function SortRow() {
-  const zone = ZONES.find((z) => z.id === 1);
-  const [isAllOn, setIsAllOn] = useState(false);
+interface SortRowProps {
+  zoneId: number;
+}
+
+export default function SortRow({ zoneId }: SortRowProps) {
+  const { zones, toggleDevice, controlAll } = useMqttContext();
+  const zone = zones.find((z) => z.id === zoneId);
 
   if (!zone) {
     return <div>존재하지 않는 구역입니다.</div>;
@@ -16,6 +19,7 @@ export default function SortRow() {
     (device) => device.status === "on",
   ).length;
   const totalCount = zone.deviceStatus.length;
+  const isAllOn = activeCount === totalCount;
 
   return (
     <div className="flex flex-col gap-4">
@@ -23,8 +27,8 @@ export default function SortRow() {
         partNumber={activeCount}
         allNumber={totalCount}
         isOn={isAllOn}
-        status="off"
-        onClick={() => setIsAllOn(!isAllOn)}
+        status={isAllOn ? "on" : "off"}
+        onClick={() => controlAll(zone.id, isAllOn ? "off" : "on")}
       />
 
       <div className="flex flex-col gap-2">
@@ -33,10 +37,8 @@ export default function SortRow() {
             key={device.id}
             title={device.title}
             description={device.description}
-            isOn={isAllOn || device.status === "on"}
-            onClick={() => {
-              console.log(device.id);
-            }}
+            isOn={device.status === "on"}
+            onClick={() => toggleDevice(zone.id, device.id)}
           />
         ))}
       </div>

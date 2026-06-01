@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { ZONES } from "@/entities/zone/mock";
+import { useMqttContext } from "@/context/MqttContext";
 import LiveDot from "@/components/dot/LiveDot";
 import StatusBadge from "@/components/badge/StatusBadge";
 import SummaryCard from "@/components/card/SummaryCard";
@@ -10,6 +10,7 @@ import Link from "next/link";
 
 export default function MainView() {
   const [isOn, setIsOn] = useState("zone");
+  const { zones: ZONES } = useMqttContext();
 
   return (
     <div className="flex flex-col h-screen">

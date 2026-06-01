@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "ON & OFF",
-  description: "전등을 통합 관리할 수 있습니다",
+  description: "전등 스위치를 통합 관리할 수 있습니다",
 };
 
 export default function RootLayout({

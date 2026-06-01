@@ -28,7 +28,7 @@ export default function Page() {
 
       <div className="flex flex-col pt-25 p-10 gap-8">
         <div className="flex items-center gap-4">
-          <Link href="/main">
+          <Link href="/">
             <BackButton />
           </Link>
           <div className="w-10 h-10 border border-border-default rounded-lg bg-surface-10"></div>

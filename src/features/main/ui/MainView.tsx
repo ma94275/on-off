@@ -1,24 +1,25 @@
 "use client";
 import { useState } from "react";
-import { useMqttContext } from "@/context/MqttContext";
-import LiveDot from "@/components/dot/LiveDot";
+import { useDeviceContext } from "@/context/DeviceContext";
 import StatusBadge from "@/components/badge/StatusBadge";
 import SummaryCard from "@/components/card/SummaryCard";
 import ZoneCard from "@/components/card/ZoneCard";
 import AddButton from "@/components/button/AddButton";
+import LogoutButton from "@/components/button/LogoutButton";
+import ApiStatusBadge from "@/components/ApiStatusBadge";
 import Link from "next/link";
 
 export default function MainView() {
   const [isOn, setIsOn] = useState("zone");
-  const { zones: ZONES } = useMqttContext();
+  const { zones: ZONES } = useDeviceContext();
 
   return (
     <div className="flex flex-col h-screen">
       <div className="fixed top-0 flex items-center justify-between w-full px-10 py-5 border-b border-border-default bg-bg-default">
         <span className="font-bold font-snas">on & off</span>
-        <div className="flex items-center gap-2 font-mono text-xs text-text-20">
-          <LiveDot />
-          시스템 정상
+        <div className="flex items-center gap-4">
+          <ApiStatusBadge />
+          <LogoutButton />
         </div>
       </div>
 
@@ -104,7 +105,9 @@ export default function MainView() {
                 />
               </Link>
             ))}
-            <AddButton />
+            <Link href="/new">
+              <AddButton />
+            </Link>
           </div>
         </div>
       </div>

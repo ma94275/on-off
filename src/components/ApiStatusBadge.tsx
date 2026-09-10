@@ -1,9 +1,8 @@
 "use client";
-import { useMqttContext } from "@/context/MqttContext";
-import { MqttStatus } from "@/hooks/useMqtt";
+import { useDeviceContext, ApiStatus } from "@/context/DeviceContext";
 
 const STATUS_CONFIG: Record<
-  MqttStatus,
+  ApiStatus,
   { label: string; dotClass: string; textClass: string }
 > = {
   connecting: {
@@ -28,9 +27,9 @@ const STATUS_CONFIG: Record<
   },
 };
 
-export default function MqttStatusBadge() {
-  const { mqttStatus } = useMqttContext();
-  const config = STATUS_CONFIG[mqttStatus];
+export default function ApiStatusBadge() {
+  const { apiStatus } = useDeviceContext();
+  const config = STATUS_CONFIG[apiStatus];
 
   return (
     <div

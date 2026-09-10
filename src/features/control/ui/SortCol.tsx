@@ -1,5 +1,5 @@
 "use client";
-import { useMqttContext } from "@/context/MqttContext";
+import { useDeviceContext } from "@/context/DeviceContext";
 import AllControlCard from "@/components/card/AllControlCard";
 import ColControl from "@/components/card/ColControl";
 
@@ -8,7 +8,7 @@ interface SortColProps {
 }
 
 export default function SortCol({ zoneId }: SortColProps) {
-  const { zones, toggleDevice, controlAll } = useMqttContext();
+  const { zones, toggleDevice, controlAll } = useDeviceContext();
   const zone = zones.find((z) => z.id === zoneId);
 
   if (!zone) {

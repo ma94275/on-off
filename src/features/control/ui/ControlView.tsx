@@ -68,7 +68,7 @@ export default function Page() {
             onClick={handleDelete}
             disabled={deleting}
             className="flex items-center border border-border-default rounded-lg bg-surface-10 py-[7px] px-3.5
-            text-[13px] font-sans font-medium text-text-30
+            text-[13px] font-sans font-medium text-text-20
             hover:bg-surface-20 hover:border-red-400/40 hover:text-red-400 hover:cursor-pointer transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {deleting ? "삭제 중..." : "구역 삭제"}

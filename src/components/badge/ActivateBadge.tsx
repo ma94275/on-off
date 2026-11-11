@@ -1,31 +1,34 @@
-import { StatusProps } from "@/entities/status/type";
+import { Status } from "@/entities/status/type";
 
-interface ActivateBadgeProps extends StatusProps {
+interface ActivateBadgeProps {
+  status: Status;
   onLabel?: string;
   offLabel?: string;
   partialLabel?: string;
 }
 
+const STYLE: Record<Status, { box: string; dot: string }> = {
+  on: { box: "bg-on-bg text-on-text", dot: "bg-on" },
+  partial: { box: "bg-partial-bg text-partial-text", dot: "bg-partial" },
+  off: { box: "bg-off-bg text-off-text", dot: "bg-off" },
+};
+
+/** 상태 라벨. 알약형 대신 작은 사각형 + 점 */
 export default function ActivateBadge({
   status,
-  onLabel = "활성",
-  offLabel = "비활성",
-  partialLabel = "부분 활성",
+  onLabel = "전체 켜짐",
+  offLabel = "꺼짐",
+  partialLabel = "일부 켜짐",
 }: ActivateBadgeProps) {
   const label =
     status === "on" ? onLabel : status === "partial" ? partialLabel : offLabel;
+  const s = STYLE[status];
 
   return (
     <span
-      className={`items-center border px-2.5 py-0.5 rounded-full text-[11px] font-mono tracking-[-0.1em]
-        ${
-          status === "on"
-            ? "bg-green-30 border-green-20 text-green-10"
-            : status === "partial"
-              ? "bg-yellow-30 border-yellow-20 text-yellow-10"
-              : "bg-surface-20 border-border-default text-text-30"
-        }`}
+      className={`inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded px-1.5 text-xs font-medium ${s.box}`}
     >
+      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
       {label}
     </span>
   );

@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { logout } from "@/entities/auth/api";
+import Button from "@/components/ui/Button";
+import { clearCachedAdmin } from "@/components/layout/AdminIdentity";
 
 export default function LogoutButton() {
   const router = useRouter();
@@ -14,19 +16,15 @@ export default function LogoutButton() {
     } catch (err) {
       console.error("[API] 로그아웃 실패:", err);
     } finally {
+      clearCachedAdmin();
       router.push("/login");
       router.refresh();
     }
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleLogout}
-      disabled={loading}
-      className="text-xs font-mono text-text-20 hover:text-text-10 hover:cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {loading ? "로그아웃 중..." : "로그아웃"}
-    </button>
+    <Button variant="ghost" size="sm" onClick={handleLogout} disabled={loading}>
+      {loading ? "로그아웃 중…" : "로그아웃"}
+    </Button>
   );
 }

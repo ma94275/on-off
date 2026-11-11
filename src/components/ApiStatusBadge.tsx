@@ -7,23 +7,23 @@ const STATUS_CONFIG: Record<
 > = {
   connecting: {
     label: "연결 중",
-    dotClass: "bg-yellow-400 animate-pulse",
-    textClass: "text-yellow-400",
+    dotClass: "bg-partial animate-pulse",
+    textClass: "text-partial-text",
   },
   connected: {
     label: "시스템 정상",
-    dotClass: "bg-green-400",
-    textClass: "text-green-400",
+    dotClass: "bg-on",
+    textClass: "text-ink-2",
   },
   disconnected: {
     label: "연결 끊김",
-    dotClass: "bg-gray-400",
-    textClass: "text-gray-400",
+    dotClass: "bg-off",
+    textClass: "text-ink-3",
   },
   error: {
     label: "연결 오류",
-    dotClass: "bg-red-400 animate-pulse",
-    textClass: "text-red-400",
+    dotClass: "bg-danger animate-pulse",
+    textClass: "text-danger",
   },
 };
 
@@ -32,11 +32,17 @@ export default function ApiStatusBadge() {
   const config = STATUS_CONFIG[apiStatus];
 
   return (
-    <div
-      className={`flex items-center gap-2 font-mono text-xs ${config.textClass}`}
+    <span
+      className={`flex items-center gap-2 text-[13px] ${config.textClass}`}
+      title={`백엔드 연결 상태: ${config.label}`}
     >
-      <span className={`w-2 h-2 rounded-full ${config.dotClass}`} />
-      {config.label}
-    </div>
+      <span className="relative flex h-2 w-2">
+        {apiStatus === "connected" && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-on opacity-40 [animation-duration:2.5s]" />
+        )}
+        <span className={`relative h-2 w-2 rounded-full ${config.dotClass}`} />
+      </span>
+      <span className="hidden sm:inline">{config.label}</span>
+    </span>
   );
 }

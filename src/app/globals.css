@@ -1,41 +1,91 @@
 @import "tailwindcss";
 
+/*
+ * 색의 역할
+ *  - 중립(canvas/surface/subtle/line/ink) : 레이아웃, 텍스트, 버튼 등 일반 UI
+ *  - 상태(on/partial/off)                 : 켜짐 · 일부 켜짐 · 꺼짐 표현에만 사용
+ *  - danger                               : 삭제 등 파괴적 동작
+ *  브랜드 그린/골드는 로고 마크에만 남기고 UI에는 쓰지 않는다.
+ */
 @theme {
-  --font-sans: DM Sans, sans-serif;
-  --font-mono: DM Mono, monospace;
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
 
-  --color-bg-default: #0e0f11;
-  --color-surface-10: #16181c;
-  --color-surface-20: #1e2127;
-  --color-border-default: rgba(255, 255, 255, 0.07);
-  --color-border-hover: rgba(255, 255, 255, 0.12);
+  /* 중립 */
+  --color-canvas: #f6f7f6;
+  --color-surface: #ffffff;
+  --color-subtle: #f1f2f1;
+  --color-line: #e4e6e3;
+  --color-line-strong: #cfd3ce;
 
-  --color-text-10: #f0f0f0;
-  --color-text-20: #8a8f9a;
-  --color-text-30: #555a64;
+  --color-ink: #121613;
+  --color-ink-2: #4a514c;
+  --color-ink-3: #6b726d;
+  --color-ink-4: #9aa09b;
 
-  --color-green-10: #4ade80;
-  --color-green-20: rgba(74, 222, 128, 0.25);
-  --color-green-30: rgba(74, 222, 128, 0.1);
-  --color-green-40: rgba(74, 222, 128, 0.4);
-  --color-green-50: rgba(0, 201, 80, 0.03);
-  --color-yellow-10: #fbbf24;
-  --color-yellow-20: rgba(251, 191, 36, 0.25);
-  --color-yellow-30: rgba(251, 191, 36, 0.1);
+  /* 상태: 켜짐 */
+  --color-on: #1f9d4a;
+  --color-on-text: #17773a;
+  --color-on-bg: #eaf6ee;
+
+  /* 상태: 일부 켜짐 / 주의 */
+  --color-partial: #d99a12;
+  --color-partial-text: #8a5b00;
+  --color-partial-bg: #fcf4e2;
+
+  /* 상태: 꺼짐 */
+  --color-off: #c3c8c4;
+  --color-off-text: #6b726d;
+  --color-off-bg: #f1f2f1;
+
+  /* 위험 */
+  --color-danger: #c2372f;
+  --color-danger-bg: #fcefee;
+  --color-danger-line: #f0c9c6;
+
+  /* 로고 전용 */
+  --color-brand: #3dc853;
+  --color-forest: #173b28;
+
+  --shadow-pop: 0 8px 24px rgba(18, 22, 19, 0.12), 0 1px 2px rgba(18, 22, 19, 0.08);
+
+  --animate-toast-in: toast-in 0.2s ease-out;
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
-@layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+@layer base {
+  html {
+    color-scheme: light;
   }
-  .scrollbar-hide {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-}
 
-body {
-  background: var(--color-bg-default);
-  color: var(--color-text-10);
-  font-family: var(--font-sans);
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    letter-spacing: -0.005em;
+    font-feature-settings: "tnum" 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-on) 60%, transparent);
+    outline-offset: 2px;
+  }
+
+  button:not(:disabled),
+  [role="switch"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
 }

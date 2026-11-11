@@ -4,23 +4,31 @@ import { useParams, useRouter } from "next/navigation";
 import { useDeviceContext } from "@/context/DeviceContext";
 import SortRow from "./SortRow";
 import SortCol from "./SortCol";
-import ApiStatusBadge from "@/components/ApiStatusBadge";
-import BackButton from "@/components/button/BackButton";
 import CardButton from "@/components/button/CardButton";
-import LogoutButton from "@/components/button/LogoutButton";
-import Link from "next/link";
+import PageShell from "@/components/layout/PageShell";
+import Breadcrumb from "@/components/layout/Breadcrumb";
+import ActivateBadge from "@/components/badge/ActivateBadge";
+import AllControlCard from "@/components/card/AllControlCard";
+import Button, { LinkButton } from "@/components/ui/Button";
+import { getZoneStatus } from "@/entities/status/util";
 
-export default function Page() {
-  const [selected, setSelected] = useState("row");
+type Layout = "row" | "col";
+
+export default function ControlView() {
+  const [layout, setLayout] = useState<Layout>("row");
   const [deleting, setDeleting] = useState(false);
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { zones, deleteZone } = useDeviceContext();
+  const { zones, isLoading, deleteZone, controlAll } = useDeviceContext();
   const zone = zones.find((z) => z.id === Number(id));
 
   const handleDelete = async () => {
     if (!zone) return;
-    if (!window.confirm(`"${zone.title}" 구역을 삭제할까요? 하위 스위치와 명령 기록도 함께 삭제됩니다.`)) {
+    if (
+      !window.confirm(
+        `"${zone.title}" 구역을 삭제할까요?\n하위 스위치와 명령 기록도 함께 삭제됩니다.`,
+      )
+    ) {
       return;
     }
     setDeleting(true);
@@ -34,68 +42,83 @@ export default function Page() {
     }
   };
 
-  if (!zone) {
-    return <div>데이터가 없습니다.</div>;
+  if (isLoading) {
+    return (
+      <PageShell>
+        <div className="flex flex-col gap-3">
+          <div className="h-4 w-32 animate-pulse rounded bg-line" />
+          <div className="h-6 w-48 animate-pulse rounded bg-line" />
+        </div>
+        <div className="h-24 animate-pulse rounded-lg bg-line/60" />
+        <div className="h-56 animate-pulse rounded-lg bg-line/60" />
+      </PageShell>
+    );
   }
 
+  if (!zone) {
+    return (
+      <PageShell>
+        <Breadcrumb current="찾을 수 없음" />
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-line bg-surface px-6 py-14 text-center">
+          <span className="text-sm font-semibold text-ink">구역을 찾을 수 없어요</span>
+          <span className="text-[13px] text-ink-3">삭제되었거나 존재하지 않는 구역입니다.</span>
+          <LinkButton href="/" size="sm" className="mt-2">
+            구역 목록으로
+          </LinkButton>
+        </div>
+      </PageShell>
+    );
+  }
+
+  const status = getZoneStatus(zone.deviceStatus.map((d) => d.status));
+  const activeCount = zone.deviceStatus.filter((d) => d.status === "on").length;
+
   return (
-    <div className="flex flex-col h-screen">
-      <div className="fixed top-0 flex items-center justify-between w-full px-10 py-5 border-b border-border-default bg-bg-default">
-        <span className="font-bold font-snas">on & off</span>
-        <div className="flex items-center gap-4">
-          <ApiStatusBadge />
-          <LogoutButton />
-        </div>
-      </div>
-
-      <div className="flex flex-col pt-25 p-10 gap-8">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link href="/">
-              <BackButton />
-            </Link>
-            <div className="w-10 h-10 border border-border-default rounded-lg bg-surface-10"></div>
-            <div className="flex flex-col gap-1">
-              <span className="text-2xl font-semibold tracking-tight">
-                {zone.title}
-              </span>
-              <span className="text-sm text-text-20">{zone.description}</span>
+    <PageShell>
+      <div className="flex flex-col gap-3">
+        <Breadcrumb current={zone.title} />
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="text-xl font-semibold tracking-tight text-ink">{zone.title}</h1>
+              <ActivateBadge status={status} />
             </div>
+            <p className="text-[13px] text-ink-3">{zone.description || "설명 없음"}</p>
           </div>
-
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleting}
-            className="flex items-center border border-border-default rounded-lg bg-surface-10 py-[7px] px-3.5
-            text-[13px] font-sans font-medium text-text-20
-            hover:bg-surface-20 hover:border-red-400/40 hover:text-red-400 hover:cursor-pointer transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {deleting ? "삭제 중..." : "구역 삭제"}
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <CardButton
-            title="가로 버튼"
-            isSelected={selected === "row"}
-            onClick={() => setSelected("row")}
-          />
-          <CardButton
-            title="세로 버튼"
-            isSelected={selected === "col"}
-            onClick={() => setSelected("col")}
-          />
-        </div>
-
-        <div className="transition-all duration-300 ease-in-out">
-          {selected === "row" ? (
-            <SortRow zoneId={zone.id} />
-          ) : (
-            <SortCol zoneId={zone.id} />
-          )}
+          <Button variant="danger" size="sm" onClick={handleDelete} disabled={deleting}>
+            {deleting ? "삭제 중…" : "구역 삭제"}
+          </Button>
         </div>
       </div>
-    </div>
+
+      <AllControlCard
+        partNumber={activeCount}
+        allNumber={zone.deviceStatus.length}
+        onControl={(target) => controlAll(zone.id, target)}
+      />
+
+      <section className="overflow-hidden rounded-lg border border-line bg-surface">
+        <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+          <h2 className="text-sm font-semibold text-ink">
+            스위치
+            <span className="ml-1.5 font-normal tabular-nums text-ink-4">
+              {zone.deviceStatus.length}
+            </span>
+          </h2>
+          <div role="group" aria-label="보기 방식" className="flex gap-0.5 rounded-md bg-subtle p-0.5">
+            <CardButton title="목록형" isSelected={layout === "row"} onClick={() => setLayout("row")} />
+            <CardButton title="카드형" isSelected={layout === "col"} onClick={() => setLayout("col")} />
+          </div>
+        </div>
+
+        {zone.deviceStatus.length === 0 ? (
+          <p className="px-4 py-10 text-center text-[13px] text-ink-3">등록된 스위치가 없어요.</p>
+        ) : layout === "row" ? (
+          <SortRow zoneId={zone.id} />
+        ) : (
+          <SortCol zoneId={zone.id} />
+        )}
+      </section>
+    </PageShell>
   );
 }

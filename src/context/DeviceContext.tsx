@@ -24,6 +24,12 @@ import { CreateDeviceInput, CreateDeviceResult } from "@/entities/device/type";
 
 export type ApiStatus = "connecting" | "connected" | "disconnected" | "error";
 
+export interface Notice {
+  id: number;
+  tone: "error" | "info";
+  message: string;
+}
+
 // 실시간 push 채널이 없어 짧은 주기로 재조회한다. api.md 참고("실시간 동기화" 항목).
 const POLL_INTERVAL_MS = 15000;
 
@@ -35,7 +41,11 @@ type ZoneOverrides = {
 
 interface DeviceContextValue {
   apiStatus: ApiStatus;
+  isLoading: boolean;
   zones: ZONESProps[];
+  notice: Notice | null;
+  dismissNotice: () => void;
+  refresh: () => Promise<void>;
   getDeviceStatus: (zoneId: number, deviceId: number) => BinaryStatus;
   toggleDevice: (zoneId: number, deviceId: number) => void;
   controlAll: (zoneId: number, targetStatus: BinaryStatus) => void;
@@ -49,7 +59,16 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   const [baseZones, setBaseZones] = useState<ZONESProps[]>([]);
   const [overrides, setOverrides] = useState<ZoneOverrides>({});
   const [apiStatus, setApiStatus] = useState<ApiStatus>("connecting");
+  const [isLoading, setIsLoading] = useState(true);
+  const [notice, setNotice] = useState<Notice | null>(null);
   const hasLoadedOnce = useRef(false);
+  // 진행 중인 제어 명령 수. 0보다 크면 백그라운드 폴링이 낙관적 상태를 덮어쓰지 않도록 건너뛴다.
+  const pendingCommands = useRef(0);
+
+  const showNotice = useCallback((tone: Notice["tone"], message: string) => {
+    setNotice({ id: Date.now(), tone, message });
+  }, []);
+  const dismissNotice = useCallback(() => setNotice(null), []);
 
   const refresh = useCallback(async () => {
     try {
@@ -64,20 +83,27 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
       // 놀라게 하므로 warn으로 낮춘다 (사용자가 직접 누른 제어 실패는 error 유지).
       console.warn("[API] 구역 목록 조회 실패(다음 폴링에서 재시도):", err);
       setApiStatus(hasLoadedOnce.current ? "disconnected" : "error");
+    } finally {
+      setIsLoading(false);
     }
   }, []);
+
+  const pollInBackground = useCallback(() => {
+    if (pendingCommands.current > 0) return;
+    refresh();
+  }, [refresh]);
 
   useEffect(() => {
     // refresh를 top-level에서 직접 호출하면 react-hooks/set-state-in-effect가
     // (실제로는 비동기인데도) "effect 안에서 setState를 동기 호출"로 오탐하므로,
     // setInterval과 동일하게 콜백으로 넘겨 최초 1회를 예약한다.
     const initial = setTimeout(refresh, 0);
-    const interval = setInterval(refresh, POLL_INTERVAL_MS);
+    const interval = setInterval(pollInBackground, POLL_INTERVAL_MS);
     return () => {
       clearTimeout(initial);
       clearInterval(interval);
     };
-  }, [refresh]);
+  }, [refresh, pollInBackground]);
 
   const zones: ZONESProps[] = baseZones.map((zone) => ({
     ...zone,
@@ -115,17 +141,23 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
       const current = getDeviceStatus(zoneId, deviceId);
       const next: BinaryStatus = current === "on" ? "off" : "on";
       applyOverride(zoneId, [{ deviceId, status: next }]);
+      pendingCommands.current++;
 
       try {
         const commandId = await controlLight(zoneId, deviceId, next);
-        await waitForCommand(commandId);
+        const done = await waitForCommand(commandId);
+        if (!done) {
+          showNotice("info", "기기 응답이 늦어지고 있어요. 상태를 다시 확인합니다.");
+        }
       } catch (err) {
         console.error("[API] 장치 제어 실패:", err);
+        showNotice("error", "스위치 제어에 실패했어요. 잠시 후 다시 시도해주세요.");
       } finally {
+        pendingCommands.current--;
         refresh();
       }
     },
-    [getDeviceStatus, applyOverride, refresh],
+    [getDeviceStatus, applyOverride, refresh, showNotice],
   );
 
   const controlAll = useCallback(
@@ -141,16 +173,25 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
         })),
       );
 
+      pendingCommands.current++;
+
       try {
         const commandIds = await controlLightAll(zoneId, targetStatus);
-        await Promise.all(commandIds.map((id) => waitForCommand(id)));
+        const results = await Promise.all(
+          commandIds.map((id) => waitForCommand(id)),
+        );
+        if (results.some((done) => !done)) {
+          showNotice("info", "일부 기기의 응답이 늦어지고 있어요. 상태를 다시 확인합니다.");
+        }
       } catch (err) {
         console.error("[API] 구역 일괄 제어 실패:", err);
+        showNotice("error", "전체 제어에 실패했어요. 잠시 후 다시 시도해주세요.");
       } finally {
+        pendingCommands.current--;
         refresh();
       }
     },
-    [baseZones, applyOverride, refresh],
+    [baseZones, applyOverride, refresh, showNotice],
   );
 
   const createZone = useCallback(
@@ -174,7 +215,11 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
     <DeviceContext.Provider
       value={{
         apiStatus,
+        isLoading,
         zones,
+        notice,
+        dismissNotice,
+        refresh,
         getDeviceStatus,
         toggleDevice,
         controlAll,

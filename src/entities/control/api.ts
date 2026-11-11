@@ -1,5 +1,6 @@
 import { apiFetch } from "@/lib/api";
 import { BinaryStatus } from "@/entities/status/type";
+import { COMMAND_POLL_INTERVAL_MS, COMMAND_TIMEOUT_MS } from "@/lib/env";
 
 type CommandState = "PENDING" | "DONE" | "TIMEOUT";
 
@@ -44,12 +45,19 @@ function getCommand(
   return apiFetch(`/commands/${commandId}`);
 }
 
-/** 제어 후 명령이 DONE 처리될 때까지 짧게 폴링한다. DONE이면 true, 그 외(TIMEOUT/미확정)는 false. */
+/**
+ * 제어 후 명령이 DONE 처리될 때까지 폴링한다.
+ * DONE이면 true, TIMEOUT이거나 COMMAND_TIMEOUT_MS 안에 끝나지 않으면 false.
+ */
 export async function waitForCommand(
   commandId: number,
-  { attempts = 3, intervalMs = 1000 } = {},
+  {
+    intervalMs = COMMAND_POLL_INTERVAL_MS,
+    timeoutMs = COMMAND_TIMEOUT_MS,
+  } = {},
 ): Promise<boolean> {
-  for (let i = 0; i < attempts; i++) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
     await sleep(intervalMs);
     const { state } = await getCommand(commandId);
     if (state === "DONE") return true;

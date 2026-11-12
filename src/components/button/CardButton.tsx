@@ -1,23 +1,25 @@
-interface SummaryCardProps {
+interface CardButtonProps {
   title: string;
   isSelected: boolean;
   onClick: () => void;
 }
 
+/** 세그먼트 컨트롤의 한 칸 */
 export default function CardButton({
   title,
   isSelected,
   onClick,
-}: SummaryCardProps) {
+}: CardButtonProps) {
   return (
     <button
-      className={`flex items-center border border-border-default rounded-md py-1.5 px-3.5 cursor-pointer
-      text-[12px] font-sans font-medium transition-colors duration-200 ${
-        isSelected
-          ? "bg-surface-20 border-border-hover text-text-10"
-          : "bg-surface-10 text-text-30 hover:text-text-20"
-      }`}
+      type="button"
+      aria-pressed={isSelected}
       onClick={onClick}
+      className={`h-7 rounded px-2.5 text-[13px] transition-colors ${
+        isSelected
+          ? "bg-surface font-medium text-ink shadow-[0_1px_2px_rgba(18,22,19,0.08)]"
+          : "text-ink-3 hover:text-ink"
+      }`}
     >
       {title}
     </button>

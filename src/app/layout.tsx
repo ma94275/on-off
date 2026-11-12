@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { MqttProvider } from "@/context/MqttContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,10 +12,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">
-        <MqttProvider>{children}</MqttProvider>
-      </body>
+    <html lang="ko" className="h-full antialiased">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+      </head>
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
